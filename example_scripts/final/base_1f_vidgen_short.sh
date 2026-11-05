@@ -14,10 +14,10 @@
 #ckpt=60000
 
 # Test ddpm 100
-CUDA_VISIBLE_DEVICES=0 python main.py --config configs/${config}.yml --data_path ${data} --exp ${exp} --ni --config_mod ${config_mod} sampling.num_frames_pred=${nfp} sampling.preds_per_test=10 sampling.subsample=100 model.version=DDPM --ckpt ${ckpt} --video_gen -v videos_${ckpt}_DDPM_100_nfp_${nfp}
+python main.py --config configs/${config}.yml --data_path ${data} --exp ${exp} --ni --config_mod ${config_mod} sampling.num_frames_pred=${nfp} sampling.preds_per_test=10 sampling.subsample=100 model.version=DDPM --ckpt ${ckpt} --video_gen -v videos_${ckpt}_DDPM_100_nfp_${nfp}
 
 # Test ddim 100
-CUDA_VISIBLE_DEVICES=0 python main.py --config configs/${config}.yml --data_path ${data} --exp ${exp} --ni --config_mod ${config_mod} sampling.num_frames_pred=${nfp} sampling.preds_per_test=10 sampling.subsample=100 model.version=DDIM --ckpt ${ckpt} --video_gen -v videos_${ckpt}_DDIM_100_nfp_${nfp}
+python main.py --config configs/${config}.yml --data_path ${data} --exp ${exp} --ni --config_mod ${config_mod} sampling.num_frames_pred=${nfp} sampling.preds_per_test=10 sampling.subsample=100 model.version=DDIM --ckpt ${ckpt} --video_gen -v videos_${ckpt}_DDIM_100_nfp_${nfp}
 
 # Test ddpm 1000
-#CUDA_VISIBLE_DEVICES=0 python main.py --config configs/${config}.yml --data_path ${data} --exp ${exp} --ni --config_mod ${config_mod} sampling.num_frames_pred=${nfp} sampling.preds_per_test=10 sampling.subsample=1000 model.version=DDPM --ckpt ${ckpt} --video_gen -v videos_${ckpt}_DDPM_1000_nfp_${nfp}
+#python main.py --config configs/${config}.yml --data_path ${data} --exp ${exp} --ni --config_mod ${config_mod} sampling.num_frames_pred=${nfp} sampling.preds_per_test=10 sampling.subsample=1000 model.version=DDPM --ckpt ${ckpt} --video_gen -v videos_${ckpt}_DDPM_1000_nfp_${nfp}

@@ -17,7 +17,8 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 pd.set_option('max_colwidth', 100)
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+# Cluster policy: GPU visibility is controlled by the scheduler / `docker --gpus`.
+# Do not assign CUDA_VISIBLE_DEVICES inside scripts launched by PBS.
 
 from fvd_utils.calculate_fvd import *
 

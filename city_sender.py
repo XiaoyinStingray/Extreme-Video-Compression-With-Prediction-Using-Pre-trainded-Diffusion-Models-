@@ -130,6 +130,13 @@ def parse_args_and_config():
     parser.add_argument("--start_idx", type=int, default=0, help="Start video index")
     parser.add_argument("--end_idx", type=int, default=0, help="End video index")
 
+    # 默认行为与原脚本一致（扫 q=4,5 和 0.30..0.03 共 28 个阈值）。
+    # 做冒烟/单点实验时用这两个参数把范围收窄，否则一次要跑几小时。
+    parser.add_argument("--q_list", type=int, nargs="+", default=None,
+                        help="只跑这些图像压缩档位 q（默认 4 5）")
+    parser.add_argument("--thresholds", type=float, nargs="+", default=None,
+                        help="只跑这些 LPIPS 阈值（默认 0.30 递减到 0.03）")
+
     args, unknown = parser.parse_known_args()
 
     args.command = 'python ' + ' '.join(sys.argv)
@@ -502,11 +509,15 @@ for databatchidx in range(start_idx, end_idx + 1):
     # output_dir = os.path.join(output_root, str(databatchidx))
     os.makedirs(output_root, exist_ok=True)  # 如果目录已存在则不会报错
 
-    for q_NN in np.arange(4, 6):
+    q_list = args.q_list if args.q_list else list(np.arange(4, 6))
+    thr_list = (args.thresholds if args.thresholds
+                else list(np.arange(0.30, 0.02, -0.01)))
+
+    for q_NN in q_list:
         model = model_mapping[q_NN]
         if args.cuda and torch.cuda.is_available():
             model = model.to("cuda")
-        for threshold in np.arange(0.30, 0.02, -0.01):
+        for threshold in thr_list:
             threshold = float("%.2f" % threshold)
             print()
             print("*" * 70)

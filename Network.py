@@ -5,19 +5,39 @@ import math
 import torch
 import torch.nn as nn
 from torch import Tensor
-from timm.models.layers import trunc_normal_
+try:
+    from timm.layers import trunc_normal_
+except ImportError:  # timm < 0.9
+    from timm.models.layers import trunc_normal_
 from ELICUtilis.layers import (
     AttentionBlock,
     conv3x3,
     CheckboardMaskedConv2d,
 )
 
-from compressai.models.priors import CompressionModel, GaussianConditional
-from compressai.ops import ste_round
+# --- 集群兼容补丁：compressai 1.2 的 API 变动（见 patches/Extreme-VC-env.md）---
+try:
+    from compressai.models.priors import CompressionModel, GaussianConditional
+except ImportError:  # compressai >= 1.2：GaussianConditional 移到 entropy_models
+    from compressai.models.priors import CompressionModel
+    from compressai.entropy_models import GaussianConditional
+
+try:
+    from compressai.ops import ste_round
+except ImportError:  # compressai >= 1.2：ste_round 改名为 quantize_ste（实现相同）
+    from compressai.ops import quantize_ste as ste_round
+
 from compressai.models.utils import conv, deconv, update_registered_buffers
 
-from thop import profile
-from ptflops import get_model_complexity_info
+# thop / ptflops 只用于 __main__ 里的 FLOPs 统计，缺包不影响编解码
+try:
+    from thop import profile
+except ImportError:
+    profile = None
+try:
+    from ptflops import get_model_complexity_info
+except ImportError:
+    get_model_complexity_info = None
 
 # From Balle's tensorflow compression examples
 SCALES_MIN = 0.11

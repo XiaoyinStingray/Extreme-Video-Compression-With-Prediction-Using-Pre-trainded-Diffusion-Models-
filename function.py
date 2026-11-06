@@ -164,59 +164,79 @@ def process_data_and_save(databatchidx,bpp_npy,psnr_npy,lpips_npy,fvd_npy,save_p
 
 
     points_psnr = np.stack([bpp_npy, psnr_list]).transpose(1, 0)
-    hull = spt.ConvexHull(points=points_psnr)
-    leftmost_point = np.argmin(points_psnr[hull.vertices, 0])
-    highest_point = np.argmax(points_psnr[hull.vertices, 1])
-    if highest_point > leftmost_point + 1:
-        selected_indices = list(range(highest_point + 1, len(hull.vertices)))
+    if len(points_psnr) >= 3:
+        hull = spt.ConvexHull(points=points_psnr)
+        leftmost_point = np.argmin(points_psnr[hull.vertices, 0])
+        highest_point = np.argmax(points_psnr[hull.vertices, 1])
+        if highest_point > leftmost_point + 1:
+            selected_indices = list(range(highest_point + 1, len(hull.vertices)))
 
+        else:
+            selected_indices = list(range(highest_point, leftmost_point + 1))
+        selected_points = points_psnr[hull.vertices[selected_indices]]
+        all_bpps_psnr.append(selected_points[:, 0])
+        all_psnr.append(selected_points[:, 1])
     else:
-        selected_indices = list(range(highest_point, leftmost_point + 1))
-    selected_points = points_psnr[hull.vertices[selected_indices]]
-    all_bpps_psnr.append(selected_points[:, 0])
-    all_psnr.append(selected_points[:, 1])
+        # 少于 3 个点构不成凸包（单点冒烟），直接用原始点
+        all_bpps_psnr.append(points_psnr[:, 0])
+        all_psnr.append(points_psnr[:, 1])
     ###############################################################
 
     psnr_arr = np.vstack((all_bpps_psnr[0], all_psnr[0]))
 
 
     points_lpips = np.stack([bpp_npy, lpips_list]).transpose(1, 0)
-    hull = spt.ConvexHull(points=points_lpips)
-    lowest_point_lpips = np.argmin(points_lpips[hull.vertices, 1])
+    if len(points_lpips) >= 3:
+        hull = spt.ConvexHull(points=points_lpips)
+        lowest_point_lpips = np.argmin(points_lpips[hull.vertices, 1])
 
-    leftest_point_lpips = np.argmin(points_lpips[hull.vertices, 0])
+        leftest_point_lpips = np.argmin(points_lpips[hull.vertices, 0])
 
-    if leftest_point_lpips >= lowest_point_lpips + 1:
-        selected_indices_lpips = list(range(leftest_point_lpips + 1, len(hull.vertices)))
+        if leftest_point_lpips >= lowest_point_lpips + 1:
+            selected_indices_lpips = list(range(leftest_point_lpips + 1, len(hull.vertices)))
+        else:
+            selected_indices_lpips = list(range(leftest_point_lpips, lowest_point_lpips + 1))
+
+        selected_points_lpips = points_lpips[hull.vertices[selected_indices_lpips]]
+        all_bpps_lpips.append(selected_points_lpips[:, 0])
+        all_lpips.append(selected_points_lpips[:, 1])
     else:
-        selected_indices_lpips = list(range(leftest_point_lpips, lowest_point_lpips + 1))
-
-    selected_points_lpips = points_lpips[hull.vertices[selected_indices_lpips]]
-    all_bpps_lpips.append(selected_points_lpips[:, 0])
-    all_lpips.append(selected_points_lpips[:, 1])
+        all_bpps_lpips.append(points_lpips[:, 0])
+        all_lpips.append(points_lpips[:, 1])
 
     lpips_arr = np.vstack((all_bpps_lpips[0], all_lpips[0]))
 
     all_bpps_fvd = []
     all_fvd = []
-    points_fvd = np.stack([bpp_npy, fvd_npy]).transpose(1, 0)
-    hull = spt.ConvexHull(points=points_fvd)
-    lowest_point_fvd = np.argmin(points_fvd[hull.vertices, 1])
-    leftest_point_fvd = np.argmin(points_fvd[hull.vertices, 0])
-
-    if leftest_point_fvd > lowest_point_fvd + 1:
-        selected_indices_fvd = list(range(leftest_point_fvd + 1, len(hull.vertices)))
-        selected_indices_fvd.insert(0, leftest_point_fvd)
-        selected_indices_fvd.append(lowest_point_fvd)
-
+    if len(fvd_npy) and len(fvd_npy) == len(bpp_npy):
+        points_fvd = np.stack([bpp_npy, fvd_npy]).transpose(1, 0)
     else:
+        points_fvd = None
 
-        selected_indices_fvd = list(range(leftest_point_fvd, lowest_point_fvd + 1))
+    if points_fvd is not None and len(points_fvd) >= 3:
+        hull = spt.ConvexHull(points=points_fvd)
+        lowest_point_fvd = np.argmin(points_fvd[hull.vertices, 1])
+        leftest_point_fvd = np.argmin(points_fvd[hull.vertices, 0])
 
-    selected_points_fvd = points_fvd[hull.vertices[selected_indices_fvd]]
+        if leftest_point_fvd > lowest_point_fvd + 1:
+            selected_indices_fvd = list(range(leftest_point_fvd + 1, len(hull.vertices)))
+            selected_indices_fvd.insert(0, leftest_point_fvd)
+            selected_indices_fvd.append(lowest_point_fvd)
 
-    all_bpps_fvd.append(selected_points_fvd[:, 0])
-    all_fvd.append(selected_points_fvd[:, 1])
+        else:
+
+            selected_indices_fvd = list(range(leftest_point_fvd, lowest_point_fvd + 1))
+
+        selected_points_fvd = points_fvd[hull.vertices[selected_indices_fvd]]
+
+        all_bpps_fvd.append(selected_points_fvd[:, 0])
+        all_fvd.append(selected_points_fvd[:, 1])
+    elif points_fvd is not None:
+        all_bpps_fvd.append(points_fvd[:, 0])
+        all_fvd.append(points_fvd[:, 1])
+    else:
+        all_bpps_fvd.append(np.zeros(0))
+        all_fvd.append(np.zeros(0))
 
     fvd_arr = np.vstack((all_bpps_fvd[0], all_fvd[0]))
 

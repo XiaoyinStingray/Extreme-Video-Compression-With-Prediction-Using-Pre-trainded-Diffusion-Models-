@@ -36,7 +36,7 @@ def plot(databatchidx, psnr_arr, lpips_arr, fvd_arr, output_path):
     all_h265_bpps, all_h265_psnr, all_h265_lpips, all_h265_fvd = [], [], [], []
 
 
-    city_bm_h264 = np.load(".bench_npy/bench_264_24.npy")[databatchidx]
+    city_bm_h264 = np.load("bench_npy/bench_264_24.npy")[databatchidx]
     city_bm_h265 = np.load("bench_npy/bench_265_24.npy")[databatchidx]
 
 
